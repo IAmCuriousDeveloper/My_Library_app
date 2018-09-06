@@ -45,12 +45,12 @@ class UI{
     }
 
 
-deleteBook(target)
-{if(target.className==='delete'){
+deleteBook(target){
+    if(target.className==='delete'){
     target.parentElement.parentElement.remove();
-}
+                                    }
 
-}
+                }
 
 
 clearFields(){
@@ -60,6 +60,68 @@ clearFields(){
 
 }
 }
+//local storage class
+
+class Store{
+
+   static getBooks(){
+let books;
+if(localStorage.getItem('books')===null){
+    books = [];
+}else{
+    books = JSON.parse(localStorage.getItem('books'));//fetching like an object
+}
+return books;
+
+    }
+
+
+    static displayBooks(){
+        const books = Store.getBooks();
+        books.forEach(function(book) {
+            const ui = new UI;
+
+            //add book to UI
+            ui.addBookToList(book);
+
+        });
+    }
+
+
+
+
+    static addBook(book){
+        const books = Store.getBooks();
+
+        books.push(book);
+
+        localStorage.setItem('books',JSON.stringify(books));//storage should be string 
+    }
+
+    static removeBook(isbn){
+        
+        const books = Store.getBooks();
+
+        books.forEach(function(book,index) {
+
+            if(book.isbn === isbn){
+                books.splice(index,1);
+            }
+            });
+
+        localStorage.setItem('books',JSON.stringify(books));//storage should be string 
+
+
+}
+}
+
+//DOMload event 
+document.addEventListener('DOMContentLoaded',Store.displayBooks);
+
+
+
+
+//event listener for add-book
 document.getElementById('book-form').addEventListener('submit',function(e){
     const title = document.getElementById('title').value;
     const author = document.getElementById('author').value;
@@ -82,6 +144,12 @@ document.getElementById('book-form').addEventListener('submit',function(e){
     //add book to list
     
     ui.addBookToList(book);
+
+    //Add to local storage
+     Store.addBook(book);
+
+
+    // }
     
     //ui success alert
     ui.showAlert('Book added successfully ','success');
@@ -98,9 +166,18 @@ document.getElementById('book-form').addEventListener('submit',function(e){
     //event listener for delete 
     
     document.getElementById('book-list').addEventListener('click',function(e){
-    
-        const ui = new UI();
+
+    //instantiate ui
+        
+    const ui = new UI();
+
+    //delete book
+
     ui.deleteBook(e.target);
+
+    //remove from ls
+
+    Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
     
     //showing alert 
     ui.showAlert('Book removed successfully','success');
